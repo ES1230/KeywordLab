@@ -1,0 +1,11 @@
+[ ] Firebase 웹 앱 등록 및 4개 설정값 확보
+[ ] Firebase Email/Password 로그인 활성화
+[ ] 관리자 이메일/비밀번호 생성
+[ ] Firestore 생성, firestore.rules 적용
+[ ] 일반 사용자: Authentication 등록 + allowed_emails/{email} enabled=true
+[ ] Firebase 서비스 계정 발급 (JSON 자체 업로드 절대 금지)
+[ ] 네이버 API 비밀키 재발급
+[ ] GitHub 저장소에 코드만 업로드
+[ ] Vercel 환경변수 입력, 배포
+[ ] Firebase Authorized domains에 Vercel 도메인 추가
+[ ] 관리자 무제한 / 일반 15회 / 계정별 기록 분리 직접 테스트
