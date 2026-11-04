@@ -1,4 +1,4 @@
-# My Keyword Lab — Firebase + Vercel (v2.1)
+# KeywordLab — Firebase + Vercel (v2.2)
 
 Next.js + Firebase Authentication + Cloud Firestore + NAVER SearchAd / API HUB. No Python needed.
 
@@ -36,6 +36,50 @@ https://vercel.com/new → GitHub 저장소 Import → Framework Next.js → Env
 ## 5. 주의 및 검사
 
 - 로컬 설치 시 Node.js LTS를 설치하고 `npm install`, `npm run dev`를 실행하세요.
-- Vercel 무료 플랜 함수 실행 시간, Firebase 무료 쿼터/Firestore 비용, NAVER API 사용량 제한을 모니터링하세요. 월간 블로그 발행량은 공식 집계가 아니라 최대 1,000건 검색 결과 기반 참고치.
+- Vercel 무료 플랜 함수 실행 시간, Firebase 무료 쿼터/Firestore 비용, NAVER API 사용량 제한을 모니터링하세요. 최근 30일 블로그 확인 건수는 최신 검색 결과 최대 1,000건의 작성일을 확인한 참고치이며 전체 월간 발행량이 아닙니다. 카페 API는 글 작성일을 주지 않으므로 정확한 월간 카페 발행량을 표시하지 않습니다.
 - 검색 분석은 외부 API 호출 전 차감되며, API 호출에 실패해도 차감됩니다. 중요한 사용 정책이므로 사용자에게 안내되어 있습니다.
 - UI와 API 코드는 작성되었지만 실제 Firebase 프로젝트/네이버 인증키를 이용한 종단 간 동작은 배포 후 검증이 필요합니다.
+
+
+## 6. 이번 업데이트: 데이터 기능 및 화면
+
+- 월간 PC / 모바일 / 합계 검색량: 기존 NAVER 검색광고 API (`monthlyPcQcCnt`, `monthlyMobileQcCnt`).
+- 최근 30일 블로그 확인 건수: 기존 최신순 블로그 API 최대 1,000개에서 작성일이 기간에 들어오는 글을 계산한 **제한된 확인 건수**입니다. 정확한 전체 발행량이 아닙니다.
+- 최근 30일 카페 발행량: **미지원**. 네이버 카페글 검색 API는 작성일(`postdate`)을 제공하지 않아 계산할 수 없습니다. 화면에 `—`를 표시합니다.
+- 블로그·카페 **전체 검색 결과수**: 검색 API `total` 필드. 월간 발행량과 혼동하지 마세요.
+- 상단 안내·장식 문구는 간소화했고 모바일에서는 화면 제목 옆 메뉴 버튼으로 사이드바를 사용할 수 있습니다.
+- 검색·로그인·15회 사용량 제한·히스토리·비교·CSV 기능을 유지했습니다. 오래된 히스토리의 카페 수치는 `—`로 보입니다.
+
+### GitHub 업로드 — 이 프로젝트에서 업로드할 파일
+
+이 폴더 **안의 내용 전체**를 GitHub 저장소 최상단에 올려주세요. 특히 다음 파일이 중요합니다.
+
+```text
+app/api/analyze/route.ts
+app/api/history/route.ts
+app/globals.css
+app/layout.tsx
+app/page.tsx
+components/auth-gate.tsx
+components/dashboard.tsx
+components/login-form.tsx
+lib/firebase/access.ts
+lib/firebase/admin.ts
+lib/firebase/client.ts
+lib/keyword.ts
+lib/naver.ts
+firestore.rules
+package.json
+next.config.ts
+tsconfig.json
+next-env.d.ts
+.gitignore
+.env.example
+README.md
+```
+
+주의: `.env`, `.env.local`, `node_modules/`, `.next/`, Firebase 서비스 계정 JSON과 실제 API 키를 넣은 파일은 **업로드 금지**입니다. `.env.example`은 이름만 적힌 템플릿이라 업로드 가능합니다. GitHub에서 `package.json`이 저장소 루트에 보이도록 업로드하고, Vercel 환경변수 값은 기존 설정을 유지하세요. 새 환경변수는 필요하지 않습니다.
+
+### 검증 범위
+
+실제 네이버/Firebase 인증 정보가 프로젝트에 동봉되지 않았으므로, 외부 API 호출 및 실제 배포 동작은 해당 계정 환경에서 확인해야 합니다. 소스의 TS/TSX 문법 검사는 별도로 수행했습니다.

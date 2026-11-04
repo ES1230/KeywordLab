@@ -45,6 +45,15 @@ async function getBlogs(keyword: string, display=5, start=1, sort='sim'): Promis
   if (typeof data.total !== 'number' || !Array.isArray(data.items)) throw new Error('블로그 검색 결과 형식이 올바르지 않습니다.');
   return data;
 }
+/** NAVER Search API returns total indexed cafe search results, NOT monthly publication counts. */
+async function getCafeTotal(keyword: string): Promise<number> {
+  const q = new URLSearchParams({query:keyword, display:'1', start:'1', sort:'sim', format:'json'});
+  const data = await jsonRequest(`${HUB}/search/v1/cafearticle?${q}`, {headers:hubHeaders()}, '카페 검색');
+  if (typeof data.total !== 'number' || !Number.isFinite(data.total)) {
+    throw new Error('카페 검색 결과 형식이 올바르지 않습니다.');
+  }
+  return data.total;
+}
 function kstDate(d: Date) { return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); }
 function utcDate(value: string) { return new Date(`${value}T00:00:00+09:00`); }
 function dateOffset(day: string, offset: number) {
@@ -108,12 +117,13 @@ function relevance(text: string, input: string): number {
 export async function analyzeKeyword(keyword:string):Promise<SearchResult> {
   requireConfig();
   const warnings: string[]=[];
-  const [ads,blog,recent,trend]=await Promise.allSettled([
-    getAdRows(keyword),getBlogs(keyword),recentBlogs(keyword),trends(keyword)
+  const [ads,blog,cafe,recent,trend]=await Promise.allSettled([
+    getAdRows(keyword),getBlogs(keyword),getCafeTotal(keyword),recentBlogs(keyword),trends(keyword)
   ]);
   if(ads.status==='rejected' && blog.status==='rejected') throw new Error('검색광고와 블로그 검색에 모두 실패했습니다. API 설정을 확인하세요.');
   if(ads.status==='rejected') warnings.push(`검색광고: ${String(ads.reason?.message||'조회 실패')}`);
   if(blog.status==='rejected') warnings.push(`블로그: ${String(blog.reason?.message||'조회 실패')}`);
+  if(cafe.status==='rejected') warnings.push(`카페: ${String(cafe.reason?.message||'조회 실패')}`);
   const rows=ads.status==='fulfilled'?ads.value:[];
   const related:Related[]=rows.map(row=>{
     const pc=volume(row.monthlyPcQcCnt), mobile=volume(row.monthlyMobileQcCnt);
@@ -129,7 +139,7 @@ export async function analyzeKeyword(keyword:string):Promise<SearchResult> {
   if(trend.status==='rejected') warnings.push('검색어 트렌드 API 미등록 또는 호출 오류입니다.');
   const blogData=blog.status==='fulfilled'?blog.value:null;
   return {
-    keyword,summary:{pc,mobile,total,blogTotal:blogData?.total??null,recentCount:recentData?.count??null,
+    keyword,summary:{pc,mobile,total,blogTotal:blogData?.total??null,cafeTotal:cafe.status==='fulfilled'?cafe.value:null,recentCount:recentData?.count??null,
       recentCapped:recentData?.capped??false,recentScanned:recentData?.scanned??0,
       adCompetition:exact?String(exact.compIdx||'-'):'-',
       recentRatio:total!==null&&total>0&&recentData?Math.round(recentData.count/total*1000)/10:null},
